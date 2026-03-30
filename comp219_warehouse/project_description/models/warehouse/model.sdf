@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <sdf version='1.7'>
-  <model name='hospital'>
+  <model name='warehouse'>
     <pose>8.73746 -1.3318 0 0 -0 0</pose>
     <link name='Wall_11'>
       <collision name='Wall_11_Collision'>

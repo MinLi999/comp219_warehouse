@@ -20,7 +20,7 @@ def generate_launch_description():
         launch_arguments={
             'use_sim_time': use_sim_time,
             'autostart': autostart,
-            'map': os.path.join(pkg_rosbot, 'maps', 'hospital.yaml'),
+            'map': os.path.join(pkg_rosbot, 'maps', 'warehouse.yaml'),
             'params_file': os.path.join(pkg_rosbot, 'params', 'nav2_params.yaml'),
             'package_path': pkg_rosbot, 
         }.items()

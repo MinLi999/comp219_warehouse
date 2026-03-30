@@ -26,7 +26,7 @@ def generate_launch_description():
     ros_gz_bridge_config = os.path.join(pkg_ros_gz_rosbot, 'config', 'ros_gz_bridge_gazebo.yaml')
 
     project_path = get_package_share_directory("project_description") 
-    world_file = LaunchConfiguration("world_file", default = join(project_path, "worlds", "hospital.sdf"))
+    world_file = LaunchConfiguration("world_file", default = join(project_path, "worlds", "warehouse.sdf"))
 
 
     robot_description_config = xacro.process_file(
