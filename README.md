@@ -44,6 +44,14 @@ cd ~/project_ws
 source install/setup.bash
 ros2 launch project_nav2_bringup nav2.launch.py
 ```
+**Terminal 3: Navigation client**
+
+```bash
+cd ~/project_ws
+source install/setup.bash
+ros2 run nav2_client navigation_client
+```
+
 
 **📍 How to Navigate**
 Look at the RViz window.
