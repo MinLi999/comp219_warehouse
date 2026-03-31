@@ -66,8 +66,8 @@ def generate_launch_description():
             "-name", "rosbot",
             "-allow_renaming", "true",
             "-z", "0.2",
-            "-x", "-6.0",
-            "-y", "0.0",
+            "-x", "-0.04",
+            "-y", "0.06",
             "-Y", "0.0"
         ],            
         output='screen',
