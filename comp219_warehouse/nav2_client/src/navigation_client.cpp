@@ -1,4 +1,5 @@
 #include "nav2_client/navigation_client.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include <chrono>
 #include <thread>
 
@@ -11,12 +12,51 @@ NavigationClient::NavigationClient() : Node("navigation_client"),
         this, "navigate_to_pose");
         
     locations_["initial_pose"] = {-0.04, -0.06, 0.0};
-    locations_["medical_shop"] = {26.36, -6.18, 0.0};
-    locations_["room1"] = {10.97, 4.0, 0.0};
-    locations_["room2"] = {15.92, -4.0, 0.0};
+    locations_["it_service_desk"] = {0.388, -22.3, 0.0};
+    locations_["room1"] = {4.77, -4.11, 0.0};    // PCs & Monitors        
+    locations_["room2"] = {7.45, -10.5, 0.0};    // Laptops      
+    locations_["room3"] = {-0.549, -11, 0.0};    // Accessories      
+    locations_["room4"] = {0.848, -15.4, 0.0};   // Cables       
     
-    RCLCPP_INFO(get_logger(), "Navigation client initialized");
+    RCLCPP_INFO(get_logger(), "Centennial IT Warehouse Navigation client initialized");
+
+    auto qos_profile = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local();
+    initial_pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("/initialpose", qos_profile);
+    RCLCPP_INFO(get_logger(), "Navigation client with Auto-Initial-Pose initialized");
 }
+
+// 2. Get the intial position of the robot in the map
+bool NavigationClient::setInitialPose()
+{
+    RCLCPP_INFO(get_logger(), "Waiting for AMCL to subscribe to /initialpose...");
+    while (initial_pose_pub_->get_subscription_count() == 0 && rclcpp::ok()) {
+        // Keep spinning to allow the publisher to establish connection with AMCL's subscriber
+        rclcpp::spin_some(this->get_node_base_interface());
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+    auto msg = geometry_msgs::msg::PoseWithCovarianceStamped();
+    msg.header.frame_id = "map";
+    msg.header.stamp = this->now();
+
+    // use map_locations.yaml's initial_pose as the robot's starting point
+    auto init = locations_["initial_pose"];
+    msg.pose.pose.position.x = init.x; // -0.04
+    msg.pose.pose.position.y = init.y; // -0.06
+    msg.pose.pose.orientation.w = 1.0;  // default orientation (facing forward)
+
+    // Simulate the covariance matrix of 2D Pose Estimation
+    msg.pose.covariance[0] = 0.25;
+    msg.pose.covariance[7] = 0.25;
+    msg.pose.covariance[35] = 0.06;
+
+    RCLCPP_INFO(get_logger(), "Setting initial pose automatically...");
+    initial_pose_pub_->publish(msg);
+    
+    // Give the system some time to clear the cost map
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    return true;
+}
+
 
 bool NavigationClient::navigate2Pose(double x, double y, double z, double orientation_w)
 {
@@ -77,41 +117,49 @@ bool NavigationClient::navigate2Pose(double x, double y, double z, double orient
     return true;
 }
 
-bool NavigationClient::deliverMedicine(int order_number)
+/**
+ * @param item_type: "pc", "laptop", "accessory", "cable"
+ * @param is_inbound: true means storing staff into room (Desk -> Room), false means retrieving staff from room (Room -> Desk)
+ */
+bool NavigationClient::manageWarehouseTask(std::string item_type, bool is_inbound)
 {
-    // Navigate to medical shop
-    RCLCPP_INFO(get_logger(), "Moving to medical shop to collect medicine...");
-    auto shop = locations_["medical_shop"];
-    if (!navigate2Pose(shop.x, shop.y, shop.z)) {
-        RCLCPP_ERROR(get_logger(), "Failed to reach medical shop");
+    // 1. make sure item type is valid and get target room
+    std::string target_room;
+    if (item_type == "pc") target_room = "room1";
+    else if (item_type == "laptop") target_room = "room2";
+    else if (item_type == "accessory") target_room = "room3";
+    else if (item_type == "cable") target_room = "room4";
+    else {
+        RCLCPP_ERROR(get_logger(), "Unknown item type!");
         return false;
     }
-    
-    RCLCPP_INFO(get_logger(), "Collecting medicine...");
-    std::this_thread::sleep_for(std::chrono::seconds(15));
-    
-    // Navigate to room
-    std::string room = (order_number == 1) ? "room1" : "room2";
-    RCLCPP_INFO(get_logger(), "Delivering medicine to %s...", room.c_str());
-    auto room_loc = locations_[room];
-    if (!navigate2Pose(room_loc.x, room_loc.y, room_loc.z)) {
-        RCLCPP_ERROR(get_logger(), "Failed to reach room");
-        return false;
+
+    auto desk = locations_["it_service_desk"];
+    auto room = locations_[target_room];
+    auto home = locations_["initial_pose"];
+
+    if (is_inbound) {
+        // --- Storage logic: Service Desk -> Room ---
+        RCLCPP_INFO(get_logger(), "INBOUND: Collecting %s from Service Desk...", item_type.c_str());
+        if (!navigate2Pose(desk.x, desk.y, desk.z)) return false;
+        std::this_thread::sleep_for(std::chrono::seconds(5)); // Loading
+
+        RCLCPP_INFO(get_logger(), "Storing %s in %s...", item_type.c_str(), target_room.c_str());
+        if (!navigate2Pose(room.x, room.y, room.z)) return false;
+    } 
+    else {
+        // --- Outbound logic: Room -> Front Desk ---
+        RCLCPP_INFO(get_logger(), "OUTBOUND: Fetching %s from %s...", item_type.c_str(), target_room.c_str());
+        if (!navigate2Pose(room.x, room.y, room.z)) return false;
+        std::this_thread::sleep_for(std::chrono::seconds(5)); // Fetching
+
+        RCLCPP_INFO(get_logger(), "Delivering %s to Service Desk...", item_type.c_str());
+        if (!navigate2Pose(desk.x, desk.y, desk.z)) return false;
     }
-    
-    RCLCPP_INFO(get_logger(), "Delivering medicine...");
-    std::this_thread::sleep_for(std::chrono::seconds(10));
-    
-    // Return to initial position
-    RCLCPP_INFO(get_logger(), "Returning to initial position...");
-    auto initial = locations_["initial_pose"];
-    if (!navigate2Pose(initial.x, initial.y, initial.z)) {
-        RCLCPP_ERROR(get_logger(), "Failed to return to initial position");
-        return false;
-    }
-    
-    RCLCPP_INFO(get_logger(), "Delivery completed!");
-    return true;
+
+    // Return to standby point after task completion
+    RCLCPP_INFO(get_logger(), "Mission complete. Returning home...");
+    return navigate2Pose(home.x, home.y, home.z);
 }
 
 void NavigationClient::goalResponseCallback(

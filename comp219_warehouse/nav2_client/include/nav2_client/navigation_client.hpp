@@ -5,6 +5,7 @@
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <nav2_msgs/action/navigate_to_pose.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <map>
 #include <string>
 
@@ -18,9 +19,11 @@ class NavigationClient : public rclcpp::Node {
 public:
     NavigationClient();
     bool navigate2Pose(double x, double y, double z, double orientation_w = 1.0);
-    bool deliverMedicine(int order_number);
+    bool manageWarehouseTask(std::string item_type, bool is_inbound);
+    bool setInitialPose();
 
 private:
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr initial_pose_pub_;
     using NavigateToPose = nav2_msgs::action::NavigateToPose;
     using GoalHandleNavigateToPose = rclcpp_action::ClientGoalHandle<NavigateToPose>;
     
