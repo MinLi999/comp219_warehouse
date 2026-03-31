@@ -196,19 +196,36 @@
       <pose>16.575 -5.475 0 0 -0 -1.5708</pose>
     </link>
     
-    <link name='IT_Service_Table'>
-        <pose>13.15 -7.4 0 0 0 3.14159</pose>
-        <collision name='collision_top'>
-          <pose>0 0 0.8 0 0 0</pose> <geometry><box><size>7.0 0.8 0.1</size></box></geometry>
-        </collision>
-        <visual name='visual_top'>
+   <link name='IT_Service_Table'>
+      <pose>13.15 -7.4 0 0 0 3.14159</pose>
+
+      <collision name='solid_base_collision'>
+          <pose>0 0 0.4 0 0 0</pose> 
+          <geometry>
+              <box>
+                  <size>7.0 0.8 0.8</size>
+              </box>
+          </geometry>
+      </collision>
+
+      <visual name='visual_top'>
           <pose>0 0 0.8 0 0 0</pose>
           <geometry><box><size>7.0 0.8 0.1</size></box></geometry>
-          <material><ambient>0.6 0.3 0.1 1</ambient><diffuse>0.6 0.3 0.1 1</diffuse></material> </visual>
-        <collision name='collision_leg1'><pose>-3.4 0 0.4 0 0 0</pose><geometry><box><size>0.1 0.8 0.8</size></box></geometry></collision>
-        <visual name='visual_leg1'><pose>-3.4 0 0.4 0 0 0</pose><geometry><box><size>0.1 0.8 0.8</size></box></geometry><material><ambient>0.2 0.2 0.2 1</ambient></material></visual>
-        <collision name='collision_leg2'><pose>3.4 0 0.4 0 0 0</pose><geometry><box><size>0.1 0.8 0.8</size></box></geometry></collision>
-        <visual name='visual_leg2'><pose>3.4 0 0.4 0 0 0</pose><geometry><box><size>0.1 0.8 0.8</size></box></geometry><material><ambient>0.2 0.2 0.2 1</ambient></material></visual>
+          <material>
+              <ambient>0.6 0.3 0.1 1</ambient>
+              <diffuse>0.6 0.3 0.1 1</diffuse>
+          </material> 
+      </visual>
+      <visual name='visual_leg1'>
+          <pose>-3.4 0 0.4 0 0 0</pose>
+          <geometry><box><size>0.1 0.8 0.8</size></box></geometry>
+          <material><ambient>0.2 0.2 0.2 1</ambient></material>
+      </visual>
+      <visual name='visual_leg2'>
+          <pose>3.4 0 0.4 0 0 0</pose>
+          <geometry><box><size>0.1 0.8 0.8</size></box></geometry>
+          <material><ambient>0.2 0.2 0.2 1</ambient></material>
+      </visual>
     </link>
 
     <link name='Wall_19'>
