@@ -8,12 +8,12 @@ map_locations:
     initial_pose: [-0.04, -0.06, 0.0]
 
     # Original room coordinates preserved
-    room1: [10.97, 4.0, 0.0]    # Storage: PCs AND Monitors
-    room2: [15.92, -4.0, 0.0]   # Storage: Laptops
+    room1: [10.97, 4.0, 0.0]    # Storage: PCs AND Monitors (Red)
+    room2: [15.92, -4.0, 0.0]   # Storage: Laptops (Green)
     
     # New rooms added to complement the storage capacity
-    room3: [10.97, -4.0, 0.0]   # Storage: Accessories
-    room4: [15.92, 4.0, 0.0]    # Storage: Cables
+    room3: [10.97, -4.0, 0.0]   # Storage: Accessories 
+    room4: [15.92, 4.0, 0.0]    # Storage: Cables (Purple)
     
     # Renamed from medical_shop, coordinate preserved
-    it_service_desk: [26.36, -6.18, 0.0] 
+    it_service_desk: [26.36, -6.18, 0.0]  # IT Service Desk (Yellow)
