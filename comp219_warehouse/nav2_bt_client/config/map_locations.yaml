@@ -4,16 +4,13 @@ map_locations:
     # Logic: Added room3 and room4. Renamed medical_shop to it_service_desk.
     locations: ["room1", "room2", "room3", "room4", "it_service_desk"]
     
-    # Original initial_pose preserved as requested
-    initial_pose: [-0.04, -0.06, 0.0]
+    initial_pose: [0.0, 0.0, 0.0]
 
-    # Original room coordinates preserved
-    room1: [4.77, -4.11, 0.0]    # Storage: PCs AND Monitors (Red)
-    room2: [7.45, -10.5, 0.0]   # Storage: Laptops (Green)
+    room1: [4.570, -4.072, 0.0] # Storage: PCs AND Monitors (Red)
+    room2: [7.179, -10.247, 0.0]   # Storage: Laptops (Green)
     
     # New rooms added to complement the storage capacity
-    room3: [-0.549, -11, 0.0]   # Storage: Accessories 
-    room4: [0.848, -15.4, 0.0]    # Storage: Cables (Purple)
+    room3: [-0.0498, -11.261, 0.0]  # Storage: Accessories 
+    room4: [1.019, -15.706, 0.0]    # Storage: Cables (Purple)
     
-    # Renamed from medical_shop, coordinate preserved
-    it_service_desk: [0.388, -22.3, 0.0]  # IT Service Desk (Yellow)
+    it_service_desk: [0.523, -22.043, 0.0]  # IT Service Desk (Yellow)
