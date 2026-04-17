@@ -1,0 +1,13 @@
+warehouse_ai_agent:
+  ros__parameters:
+    # Updated for IT Warehouse Task Management
+    locations: ["room1", "room2", "room3", "room4", "it_service_desk"]
+
+    initial_pose: [0.0, 0.0, 0.0]
+
+    # Coordinates extracted from the warehouse map
+    room1: [4.570, -4.072, 0.0]           # PCs & Monitors
+    room2: [7.179, -10.247, 0.0]          # Laptops
+    room3: [-0.0498, -11.261, 0.0]        # Accessories
+    room4: [1.019, -15.706, 0.0]          # Cables
+    it_service_desk: [0.523, -22.043, 0.0] # Final Drop-off
