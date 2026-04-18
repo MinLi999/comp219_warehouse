@@ -26,9 +26,11 @@ class PromptManager:
                 # The YAML has 'warehouse_ai_agent' at the top level
                 # then 'ros__parameters' below it.
                 node_params = data.get('warehouse_ai_agent', {}).get('ros__parameters', {})
-                
-                # We want to extract the actual coordinates for the rooms
-                room_keys = ["room1", "room2", "room3", "room4", "it_service_desk"]
+               
+                # Use the YAML-defined locations list so new rooms are picked up automatically
+                room_keys = node_params.get("locations", [])
+                if not room_keys:
+                    room_keys = [k for k in node_params.keys() if k not in ["locations", "initial_pose"]]
                 
                 # Create a dictionary of just the rooms and their [x, y, z]
                 extracted_locations = {k: node_params[k] for k in room_keys if k in node_params}
