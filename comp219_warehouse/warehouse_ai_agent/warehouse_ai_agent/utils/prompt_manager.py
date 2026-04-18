@@ -52,6 +52,9 @@ class PromptManager:
         
         If the user mentions PCs or monitors, map it to room1.
         If the user mentions laptops, map it to room2.
+        If the user mentions accessories, map it to room3.
+        If the user mentions cables, map it to room4.
+        If the user mentions charging station, map it to charging_station.
         
         If the location is known, respond ONLY in JSON format:
         {{"location": "room_name", "coords": [x, y, theta], "status": "success"}}
