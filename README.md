@@ -6,6 +6,7 @@ Welcome to the COMP219 Group 4 - robotics project repository! This package conta
 - **OS:** Ubuntu 24.04 (Native or WSL2)
 - **ROS 2:** Jazzy 
 - **Gazebo:** Harmonic (Modern Gazebo)
+- **AI API KEY** Need to create a .env file under ~/project_ws folder: MISTRAL_API_KEY= YOUR KEY
 
 ## 🚀 Setup & Installation (For Team Members)
 
@@ -44,7 +45,7 @@ cd ~/project_ws
 source install/setup.bash
 ros2 launch project_nav2_bringup nav2.launch.py
 ```
-**Terminal 3: Navigation client**
+**Terminal 3: Navigation client** - Don't use this part
 
 ```bash
 cd ~/project_ws
@@ -52,6 +53,13 @@ source install/setup.bash
 ros2 run nav2_client navigation_client
 ```
 
+**Terminal 3: AI AGENT** - Use this
+
+```bash
+cd ~/project_ws
+source install/setup.bash
+ros2 run warehouse_ai_agent warehouse_agent
+```
 
 **📍 How to Navigate**
 Look at the RViz window.

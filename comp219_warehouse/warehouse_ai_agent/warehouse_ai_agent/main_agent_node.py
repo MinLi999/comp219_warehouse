@@ -1,16 +1,14 @@
 import os
 import sys
 import threading
+import time
 import rclpy
 from dotenv import load_dotenv
 from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from warehouse_ai_agent.graph.workflow import create_hospital_graph
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
-
-# Inside your __init__
-# If you have nav2_simple_commander installed, it's better for status feedback
-# from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
+from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy, QoSDurabilityPolicy
 
 load_dotenv()
 
@@ -40,13 +38,32 @@ class WarehouseAIAgent(Node):
             "INFO": self._handle_information
         }
 
+        self.navigator = BasicNavigator()
+
+        # =====================================================================
+        # QoS & Publisher Setup for Auto Initial Pose
+        # (TRANSIENT_LOCAL acts like a pinned message for Nav2)
+        # =====================================================================
+        qos_profile = QoSProfile(
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1,
+            reliability=QoSReliabilityPolicy.RELIABLE,
+            durability=QoSDurabilityPolicy.TRANSIENT_LOCAL
+        )
+        
+        self.initial_pose_pub = self.create_publisher(
+            PoseWithCovarianceStamped, 
+            '/initialpose', 
+            qos_profile
+        )
+
         # 3. Security & Feedback
         self.check_api_link()
 
-        # 4. Start Terminal Listener
+        # 4. Start Terminal Listener in a background thread 
+        # (This avoids blocking ROS 2 from spinning)
         self.input_thread = threading.Thread(target=self.terminal_listener, daemon=True)
         self.input_thread.start()
-        self.navigator = BasicNavigator()
 
     def check_api_link(self):
         key = os.getenv("MISTRAL_API_KEY")
@@ -56,6 +73,45 @@ class WarehouseAIAgent(Node):
             self.get_logger().error("❌ AI Brain Link: FAILED. Check your .env file!")
 
     def terminal_listener(self):
+        # =====================================================================
+        # Core Fix: Wait for AMCL subscription and publish pose with Covariance
+        # =====================================================================
+        self.get_logger().info("⏳ Waiting for AMCL to subscribe to /initialpose...")
+        
+        # 1. Loop until AMCL node is online and subscribed
+        while self.initial_pose_pub.get_subscription_count() == 0 and rclpy.ok():
+            time.sleep(0.2)
+            
+        # 2. Construct coordinate data
+        init_msg = PoseWithCovarianceStamped()
+        init_msg.header.frame_id = 'map'
+        init_msg.header.stamp = self.get_clock().now().to_msg()
+        
+        init_msg.pose.pose.position.x = -0.04
+        init_msg.pose.pose.position.y = -0.06
+        init_msg.pose.pose.position.z = 0.0
+        
+        init_msg.pose.pose.orientation.x = 0.0
+        init_msg.pose.pose.orientation.y = 0.0
+        init_msg.pose.pose.orientation.z = 0.0
+        init_msg.pose.pose.orientation.w = 1.0
+        
+        # 3. Covariance MUST be set, otherwise AMCL will discard the coordinate
+        cov = [0.0] * 36
+        cov[0] = 0.25   # x variance
+        cov[7] = 0.25   # y variance
+        cov[35] = 0.06  # yaw variance
+        init_msg.pose.covariance = cov
+
+        # 4. Publish auto localization
+        self.get_logger().info("✅ Setting initial pose automatically...")
+        self.initial_pose_pub.publish(init_msg)
+        
+        # Wait for 2 seconds to let the costmap refresh and clear ghost obstacles
+        time.sleep(2.0)
+        self.get_logger().info("✅ Ghost obstacles cleared!")
+        # =====================================================================
+
         self.get_logger().info("--- Warehouse AI Agent Active ---")
         while rclpy.ok():
             try:
@@ -75,7 +131,6 @@ class WarehouseAIAgent(Node):
         
         try:
             # 1. Graph Invoke
-            # Note: We pass the params to the graph so the AI knows the real coordinates
             initial_state = {
                 "user_input": user_query, 
                 "history": [],
@@ -83,7 +138,7 @@ class WarehouseAIAgent(Node):
             }
             final_state = self.graph.invoke(initial_state)
 
-            # 2. Action Selection (Strategy Pattern)
+            # 2. Action Selection
             decision = final_state.get("final_decision", "ABORT")
             handler = self._action_handlers.get(decision, self._handle_abort)
             handler(final_state)
@@ -118,14 +173,6 @@ class WarehouseAIAgent(Node):
         self.get_logger().info(f"ℹ️ AI Info: {state.get('response')}")
 
     def publish_goal(self, x, y, label):
-        # 1. Check if Nav2 is ready (Wait for servers to be 'Active')
-        # Note: You can also call this once in __init__ to ensure everything is up
-        # If calling here, it ensures the robot is localized before sending the goal.
-        
-        # Proper method for checking/waiting for the stack
-        # self.navigator.waitUntilNav2Active() 
-        
-        # 2. Construct the Message
         msg = PoseStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = "map"
@@ -133,11 +180,9 @@ class WarehouseAIAgent(Node):
         msg.pose.position.y = float(y)
         msg.pose.orientation.w = 1.0 
         
-        # 3. USE THE NAVIGATOR
         self.get_logger().info(f"🚀 AI Agent sending action goal to {label} at [{x}, {y}]")
         self.navigator.goToPose(msg)
 
-        # 4. Check if the goal was accepted
         if not self.navigator.isTaskComplete():
             self.get_logger().info(f"✔ Goal accepted! Robot is navigating to {label}...")
 
