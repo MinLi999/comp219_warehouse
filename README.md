@@ -1,92 +1,93 @@
-# COMP219 Group 4's Warehouse Autonomous Navigation Project
+SETUP & RUNNING INSTRUCTIONS
+=============================
 
-Welcome to the COMP219 Group 4 - robotics project repository! This package contains the Gazebo simulation environment and the ROS 2 mobile robot model for our autonomous navigation system.
+1. Create a workspace (if you haven't already)
 
-## 🛠️ Prerequisites
-- **OS:** Ubuntu 24.04 (Native or WSL2)
-- **ROS 2:** Jazzy 
-- **Gazebo:** Harmonic (Modern Gazebo)
-- **AI API KEY** Need to create a .env file under ~/project_ws folder: MISTRAL_API_KEY= YOUR KEY
+    mkdir -p ~/project_ws/src
+    cd ~/project_ws/src
 
-## 🚀 Setup & Installation (For Team Members)
 
-**1. Create a workspace (if you haven't already)**
-```bash
-mkdir -p ~/project_ws/src
-cd ~/project_ws/src
-```
+2. Extract the project files
 
-**2. Clone this repository**
-```bash
-git clone https://github.com/minli999/comp219_warehouse.git
-```
+   - Locate the downloaded project ZIP file in your Downloads folder
+   - Right-click the ZIP file and select "Extract All..." (Windows) or double-click to unzip (Mac)
+   - The unzipped folder should now be in your Downloads folder
 
-**3. Build the workspace**
-```bash
-cd ~/project_ws
-source /opt/ros/jazzy/setup.bash
-colcon build
-```
 
-**4. Runing the Project**
+3. Copy the project files into WSL
 
-**Terminal 1: Start the Gazebo Simulation & Robot**
+   In your open WSL terminal, run the following command to copy the unzipped
+   project folder from your Windows Downloads folder into your workspace src directory:
 
-```bash
-cd ~/project_ws
-source install/setup.bash
-ros2 launch project_description gazebo.launch.py
-```
+    cp -r /mnt/c/Users/<YourWindowsUsername>/Downloads/<unzipped-folder-name>/. ~/project_ws/src/
 
-**Terminal 2: Start Nav2 and RViz**
+   Replace <YourWindowsUsername> with your actual Windows username (e.g. John)
+   and <unzipped-folder-name> with the name of the extracted folder.
 
-```bash
-cd ~/project_ws
-source install/setup.bash
-ros2 launch project_nav2_bringup nav2.launch.py
-```
-**Terminal 3: Navigation client** - Don't use this part
 
-```bash
-cd ~/project_ws
-source install/setup.bash
-ros2 run nav2_client navigation_client
-```
+4. Build the workspace
 
-**Terminal 3: AI AGENT** - Use this
+    cd ~/project_ws
+    source/opt/ros/jazzy/setup.bash
+    colcon build
 
-```bash
-cd ~/project_ws
-source install/setup.bash
-ros2 run warehouse_ai_agent warehouse_agent
-```
 
-**📍 How to Navigate**
-Look at the RViz window.
+5. Add your Mistral API Key
 
-Click the "Nav2 Goal" button at the top toolbar.
+   The AI agent requires a Mistral API key to function. You need to create a .env
+   file in the project workspace containing your key.
 
-Click anywhere on the map to send the robot to that location. Watch it automatically plan the path and avoid obstacles!
+   First, create the .env file:
 
-**⚠️ WSL11 Users Troubleshooting:** If Gazebo crashes, freezes, or opens with a black/white screen without colors, press `Ctrl+C` to kill the process and force software rendering by running:
-```bash
-wsl --shutdown
-```
+    touch ~/project_ws/.env
 
-## 🤝 Git Collaboration Workflow
+   Then open it with gedit:
 
-Before you start making changes, always pull the latest updates:
+    gedit ~/project_ws/.env
 
-```bash
-cd ~/project_ws/src
-git pull origin main
-When you add new features, commit and push:
-```
-When you add new features, commit and push:
+   In the gedit window that opens, paste the following and replace the placeholder
+   with your actual Mistral API key, then save and close the file:
 
-```bash
-cd ~/project_ws/src
-git add .
-git commit -m "Describe what you changed"
-git push origin main
-```
+    MISTRAL_API_KEY=your_mistral_api_key_here
+
+   For example, if your key is abc123xyz, the file should contain:
+
+    MISTRAL_API_KEY=abc123xyz
+
+
+6. Running the Project
+
+   --- Terminal 1: Start the Gazebo Simulation & Robot ---
+    cd ~/project_ws
+    source install/setup.bash
+    ros2 launch project_description gazebo.launch.py
+
+
+   --- Terminal 2: Start Nav2 and RViz ---
+   cd ~/project_ws
+   source install/setup.bash
+   ros2 launch project_nav2_bringup nav2.launch.py
+
+
+   --- Terminal 3: AI AGENT ---
+   cd ~/project_ws
+   source venv/bin/activate
+   source install/setup.bash
+   ros2 run ros2_basic_agent warehouse_agent
+
+   --- Terminal 4: ---
+   Once the agent is running, you can type the following sample commands:
+    go to room 1
+    go to room 2
+    go to room 3
+    go to room 4
+    go to service desk
+    go to charging station
+    get a PC
+    get a monitor
+    get a laptop
+    get accessories
+    get cables
+   
+   Example command:
+   ros2 topic pub --once /prompt std_msgs/msg/String "{data: 'Go to the room with the monitors'}"
